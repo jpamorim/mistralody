@@ -8,52 +8,18 @@ import {
 } from "react-resizable-panels";
 import { Drawer } from "vaul";
 import { useState } from "react";
-import { useWorkspaceStore } from "@/lib/state/workspaceStore";
 import { getPaneLayoutStorage } from "@/lib/layout/paneStorage";
 import { List } from "lucide-react";
+import { UsageIndicator } from "@/components/usage/UsageIndicator";
+import { StrudelEditorPane } from "@/components/strudel/StrudelEditorPane";
+import { ChatPane } from "@/components/chat/ChatPane";
+import { SuggestionsPane } from "@/components/suggestions/SuggestionsPane";
 
 const MAIN_GROUP_ID = "workspace-main";
 const TOP_GROUP_ID = "workspace-top";
 
-function EditorPanePlaceholder() {
-  const { code } = useWorkspaceStore();
-
-  return (
-    <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-background p-4">
-      <h2 className="text-lg font-semibold">Strudel Editor</h2>
-      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-        Editor and visualization will be integrated in the next todo.
-      </p>
-      <pre className="mt-4 overflow-auto rounded bg-zinc-100 p-3 text-xs dark:bg-zinc-900">
-        {code}
-      </pre>
-    </div>
-  );
-}
-
-function ChatPanePlaceholder() {
-  const { inputMode, isPlaying } = useWorkspaceStore();
-
-  return (
-    <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-background p-4">
-      <h2 className="text-lg font-semibold">Chat + Voice</h2>
-      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-        Input mode: {inputMode} | Playback:{" "}
-        {isPlaying ? "playing" : "stopped"}
-      </p>
-    </div>
-  );
-}
-
 function SuggestionsPaneContent() {
-  return (
-    <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-background p-4">
-      <h2 className="text-lg font-semibold">Suggestions</h2>
-      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-        Contextual command suggestions will be wired up in a later todo.
-      </p>
-    </div>
-  );
+  return <SuggestionsPane />;
 }
 
 function DesktopLayout() {
@@ -88,11 +54,11 @@ function DesktopLayout() {
           onLayoutChanged={topLayout.onLayoutChanged}
         >
           <Panel id="editor" defaultSize={50} minSize={25}>
-            <EditorPanePlaceholder />
+            <StrudelEditorPane />
           </Panel>
           <Separator id="top-sep" className="w-1 shrink-0 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-700 dark:hover:bg-zinc-600" />
           <Panel id="chat" defaultSize={50} minSize={25}>
-            <ChatPanePlaceholder />
+            <ChatPane />
           </Panel>
         </Group>
       </Panel>
@@ -135,10 +101,10 @@ function StackedLayout() {
   return (
     <div className="flex flex-col gap-4 pb-24 lg:hidden">
       <div className="min-h-[200px]">
-        <EditorPanePlaceholder />
+        <StrudelEditorPane />
       </div>
       <div className="min-h-[200px]">
-        <ChatPanePlaceholder />
+        <ChatPane />
       </div>
       <MobileSuggestionsDrawer />
     </div>
@@ -148,6 +114,7 @@ function StackedLayout() {
 export function SplitWorkspace() {
   return (
     <section className="space-y-4">
+      <UsageIndicator />
       <div className="hidden lg:block">
         <DesktopLayout />
       </div>
