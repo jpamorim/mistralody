@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: workspace-layout
     content: Implement resizable 2-vertical + 1-bottom pane workspace with persistent pane sizes
-    status: pending
+    status: completed
   - id: strudel-integration
     content: Integrate @strudel/repl editor wrapper with code state synchronization and playback controls
     status: pending
