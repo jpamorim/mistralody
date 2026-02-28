@@ -1,5 +1,5 @@
 import { Mistral } from "@mistralai/mistralai";
-import { getServerEnv } from "@/lib/env";
+import { resolveMistralApiKey } from "@/lib/settings/resolvedKeys";
 
 let mistralClient: Mistral | null = null;
 
@@ -8,7 +8,6 @@ export function getMistralClient(): Mistral {
     return mistralClient;
   }
 
-  const env = getServerEnv();
-  mistralClient = new Mistral({ apiKey: env.MISTRAL_API_KEY });
+  mistralClient = new Mistral({ apiKey: resolveMistralApiKey() });
   return mistralClient;
 }

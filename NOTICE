@@ -1,0 +1,8 @@
+This software uses third-party components:
+
+- Strudel (https://strudel.cc) and related @strudel/* packages
+  License: AGPL-3.0
+  Source: https://codeberg.org/uzu/strudel
+
+Please review third-party licenses before distribution.
+
