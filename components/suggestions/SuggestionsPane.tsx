@@ -22,21 +22,21 @@ export function SuggestionsPane() {
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-background p-4">
+    <div className="flex h-full flex-col overflow-hidden rounded-lg border border-border bg-background p-4">
       <h2 className="text-lg font-semibold">Suggestions</h2>
-      <p className="mt-1 text-xs text-zinc-500">
+      <p className="mt-1 text-xs text-muted">
         Mode: {inputMode === "voice" ? "voice template" : "text command"} | Click
         to preview in chat before sending.
       </p>
       {recentSuggestions.length > 0 ? (
-        <div className="mt-3 rounded-md border border-dashed p-2">
-          <p className="text-xs font-medium text-zinc-500">Recent</p>
+        <div className="mt-3 rounded-md border border-dashed border-border p-2">
+          <p className="text-xs font-medium text-muted">Recent</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {recentSuggestions.map((suggestion) => (
               <button
                 key={`recent-${suggestion.id}`}
                 type="button"
-                className="rounded-full border px-3 py-1 text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                className="rounded-full border border-border px-3 py-1 text-xs hover:bg-surface-hover"
                 onClick={() => selectSuggestion(suggestion.prompt, suggestion.id)}
               >
                 {suggestion.label}
@@ -50,16 +50,16 @@ export function SuggestionsPane() {
           <div key={suggestion.id} className="group relative">
             <button
               type="button"
-              className="rounded-full border px-3 py-1 text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              className="rounded-full border border-border px-3 py-1 text-xs hover:bg-surface-hover"
               onClick={() => selectSuggestion(suggestion.prompt, suggestion.id)}
               title={suggestion.prompt}
             >
               {suggestion.label}
             </button>
-            <span className="ml-1 rounded border px-1 py-0.5 text-[10px] uppercase text-zinc-500">
+            <span className="ml-1 rounded border border-border px-1 py-0.5 text-[10px] uppercase text-muted">
               {suggestion.category}
             </span>
-            <div className="pointer-events-none absolute left-0 top-full z-10 mt-1 hidden w-56 rounded border bg-background p-2 text-[10px] text-zinc-600 shadow group-hover:block dark:text-zinc-300">
+            <div className="pointer-events-none absolute left-0 top-full z-10 mt-1 hidden w-56 rounded border border-border bg-background p-2 text-[10px] text-muted shadow group-hover:block">
               {getSuggestionReason(suggestion, code)}
             </div>
           </div>

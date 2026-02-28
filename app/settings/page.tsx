@@ -84,16 +84,16 @@ export default function SettingsPage() {
   return (
     <main className="mx-auto max-w-3xl p-6">
       <h1 className="text-2xl font-semibold">Settings</h1>
-      <p className="mt-1 text-sm text-zinc-500">
+      <p className="mt-1 text-sm text-muted">
         Configure API keys and per-service usage limits.
       </p>
-      <div className="mt-3 rounded border border-dashed p-3 text-xs text-zinc-500">
+      <div className="mt-3 rounded border border-dashed border-border p-3 text-xs text-muted">
         Keys are stored server-side for this app runtime. Usage limits are stored in
         your browser to control local warnings and indicators.
       </div>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-6">
-        <section className="space-y-3 rounded-lg border p-4">
+        <section className="space-y-3 rounded-lg border border-border p-4">
           <h2 className="font-semibold">API keys</h2>
           <label className="block text-sm">
             <span>Mistral API key</span>
@@ -106,14 +106,14 @@ export default function SettingsPage() {
                   mistralApiKey: event.target.value,
                 }))
               }
-              className={`mt-1 w-full rounded border p-2 ${payload.mistralApiKey && payload.mistralApiKey.length < 10 ? "border-red-500" : ""}`}
+              className={`mt-1 w-full rounded border p-2 ${payload.mistralApiKey && payload.mistralApiKey.length < 10 ? "border-error" : "border-border"}`}
             />
             <div className="mt-1 flex items-center justify-between">
-              <span className="text-xs text-zinc-500">Must be at least 10 chars.</span>
+              <span className="text-xs text-muted">Must be at least 10 chars.</span>
               <button
                 type="button"
                 onClick={() => void testKey("mistral")}
-                className="rounded border px-2 py-1 text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                className="rounded border border-border px-2 py-1 text-xs hover:bg-surface-hover"
                 disabled={testingProvider === "mistral-key"}
               >
                 {testingProvider === "mistral-key" ? "Testing..." : "Test key"}
@@ -131,14 +131,14 @@ export default function SettingsPage() {
                   elevenlabsApiKey: event.target.value,
                 }))
               }
-              className={`mt-1 w-full rounded border p-2 ${payload.elevenlabsApiKey && payload.elevenlabsApiKey.length < 10 ? "border-red-500" : ""}`}
+              className={`mt-1 w-full rounded border p-2 ${payload.elevenlabsApiKey && payload.elevenlabsApiKey.length < 10 ? "border-error" : "border-border"}`}
             />
             <div className="mt-1 flex items-center justify-between">
-              <span className="text-xs text-zinc-500">Must be at least 10 chars.</span>
+              <span className="text-xs text-muted">Must be at least 10 chars.</span>
               <button
                 type="button"
                 onClick={() => void testKey("elevenlabs")}
-                className="rounded border px-2 py-1 text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                className="rounded border border-border px-2 py-1 text-xs hover:bg-surface-hover"
                 disabled={testingProvider === "elevenlabs-key"}
               >
                 {testingProvider === "elevenlabs-key" ? "Testing..." : "Test key"}
@@ -147,7 +147,7 @@ export default function SettingsPage() {
           </label>
         </section>
 
-        <section className="space-y-3 rounded-lg border p-4">
+        <section className="space-y-3 rounded-lg border border-border p-4">
           <h2 className="font-semibold">Usage limits</h2>
           {(Object.keys(payload.usageLimits) as UsageService[]).map((service) => (
             <label key={service} className="block text-sm">
@@ -168,7 +168,7 @@ export default function SettingsPage() {
                     },
                   }))
                 }
-                className="mt-1 w-full rounded border p-2"
+                className="mt-1 w-full rounded border border-border p-2"
               />
               <select
                 value={payload.usageLimits[service].period}
@@ -184,7 +184,7 @@ export default function SettingsPage() {
                     },
                   }))
                 }
-                className="mt-1 w-full rounded border p-2"
+                className="mt-1 w-full rounded border border-border p-2"
               >
                 <option value="daily">Daily</option>
                 <option value="monthly">Monthly</option>
@@ -197,17 +197,17 @@ export default function SettingsPage() {
           <span
             className={`text-sm ${
               status?.type === "error"
-                ? "text-red-500"
+                ? "text-error"
                 : status?.type === "ok"
-                  ? "text-emerald-600"
-                  : "text-zinc-500"
+                  ? "text-success"
+                  : "text-muted"
             }`}
           >
             {status?.text}
           </span>
           <button
             type="submit"
-            className="rounded-md border px-4 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="rounded-md border border-border px-4 py-2 text-sm hover:bg-surface-hover"
           >
             Save settings
           </button>

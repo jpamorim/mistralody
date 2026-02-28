@@ -34,13 +34,13 @@ export function StrudelEditorPane() {
   }, [setIsPlaying]);
 
   return (
-    <div className="flex h-full flex-col gap-3 overflow-hidden rounded-lg border bg-background p-4">
+    <div className="flex h-full flex-col gap-3 overflow-hidden rounded-lg border border-border bg-background p-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Strudel Editor</h2>
         <div className="flex gap-2">
           <button
             type="button"
-            className={`rounded-md border px-3 py-1 text-sm hover:bg-zinc-100 disabled:opacity-50 dark:hover:bg-zinc-800 ${isPlaying ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900" : ""}`}
+            className={`rounded-md border border-border px-3 py-1 text-sm disabled:opacity-50 ${isPlaying ? "bg-primary text-white hover:bg-primary-hover" : "hover:bg-surface-hover"}`}
             onClick={() => void handlePlay()}
             disabled={disablePlayback}
           >
@@ -48,7 +48,7 @@ export function StrudelEditorPane() {
           </button>
           <button
             type="button"
-            className={`rounded-md border px-3 py-1 text-sm hover:bg-zinc-100 disabled:opacity-50 dark:hover:bg-zinc-800 ${!isPlaying ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900" : ""}`}
+            className={`rounded-md border border-border px-3 py-1 text-sm disabled:opacity-50 ${!isPlaying ? "bg-foreground text-background hover:opacity-90" : "hover:bg-surface-hover"}`}
             onClick={handleStop}
             disabled={disablePlayback}
           >
@@ -57,9 +57,9 @@ export function StrudelEditorPane() {
         </div>
       </div>
       {playError ? (
-        <div className="text-xs text-red-500">{playError}</div>
+        <div className="text-xs text-error">{playError}</div>
       ) : null}
-      <div className="text-xs text-zinc-500">
+      <div className="text-xs text-muted">
         {lastAgentUpdate
           ? `Last agent update: ${lastAgentUpdate}`
           : "No agent updates yet."}
@@ -68,7 +68,7 @@ export function StrudelEditorPane() {
       <textarea
         value={code}
         onChange={(event) => setCode(event.target.value)}
-        className="min-h-[180px] w-full resize-y rounded-md border bg-zinc-50 p-3 font-mono text-sm dark:bg-zinc-900"
+        className="min-h-[180px] w-full resize-y rounded-md border border-border bg-surface p-3 font-mono text-sm"
       />
 
       <StrudelVisualizerPane />

@@ -58,13 +58,13 @@ function DesktopLayout() {
           <Panel id="editor" defaultSize={50} minSize={30}>
             <StrudelEditorPane />
           </Panel>
-          <Separator id="top-sep" className="w-1 shrink-0 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-700 dark:hover:bg-zinc-600" />
+          <Separator id="top-sep" className="w-1 shrink-0 bg-border hover:opacity-80" />
           <Panel id="chat" defaultSize={50} minSize={35}>
             <ChatPane />
           </Panel>
         </Group>
       </Panel>
-      <Separator id="main-sep" className="h-1 shrink-0 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-700 dark:hover:bg-zinc-600" />
+      <Separator id="main-sep" className="h-1 shrink-0 bg-border hover:opacity-80" />
       <Panel id="suggestions" defaultSize={40} minSize={15}>
         <SuggestionsPaneContent />
       </Panel>
@@ -94,7 +94,7 @@ function MobileSuggestionsDrawer() {
       <Drawer.Trigger asChild>
         <button
           type="button"
-          className="fixed bottom-6 right-6 flex min-h-14 min-w-14 items-center justify-center gap-2 rounded-full bg-zinc-900 px-4 text-white shadow-lg transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          className="fixed bottom-6 right-6 flex min-h-14 min-w-14 items-center justify-center gap-2 rounded-full bg-foreground px-4 text-background shadow-lg transition hover:opacity-90"
           aria-label="Open suggestions"
         >
           <List className="h-6 w-6" />
@@ -104,8 +104,8 @@ function MobileSuggestionsDrawer() {
       </Drawer.Trigger>
       <Drawer.Portal>
         <Drawer.Overlay className="bg-black/40" />
-        <Drawer.Content className="max-h-[70vh] rounded-t-xl border-t bg-background">
-          <Drawer.Handle className="mx-auto mt-2 h-1 w-12 rounded-full bg-zinc-300 dark:bg-zinc-600" />
+        <Drawer.Content className="max-h-[70vh] rounded-t-xl border-t border-border bg-background">
+          <Drawer.Handle className="mx-auto mt-2 h-1 w-12 rounded-full bg-border" />
           <div className="overflow-auto p-4">
             <SuggestionsPaneContent />
           </div>

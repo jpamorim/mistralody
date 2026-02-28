@@ -7,7 +7,7 @@ export function StrudelVisualizerPane() {
   const { code, isPlaying, cps } = useWorkspaceStore();
 
   return (
-    <div className="rounded-lg border bg-background p-2">
+    <div className="rounded-lg border border-border bg-surface p-2">
       <StrudelVisualizer
         code={code}
         isPlaying={isPlaying}

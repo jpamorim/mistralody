@@ -143,20 +143,20 @@ export function ChatPane() {
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border bg-background p-3">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-background p-3">
       <div className="mb-2 flex shrink-0 items-center justify-between">
         <h2 className="text-base font-semibold">Chat + Voice</h2>
         <div className="flex gap-1">
           <button
             type="button"
-            className={`rounded border px-2 py-1 text-xs ${inputMode === "text" ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900" : ""}`}
+            className={`rounded border border-border px-2 py-1 text-xs hover:bg-surface-hover ${inputMode === "text" ? "bg-foreground text-background" : ""}`}
             onClick={() => setInputMode("text")}
           >
             Text
           </button>
           <button
             type="button"
-            className={`rounded border px-2 py-1 text-xs ${inputMode === "voice" ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900" : ""}`}
+            className={`rounded border border-border px-2 py-1 text-xs hover:bg-surface-hover ${inputMode === "voice" ? "bg-foreground text-background" : ""}`}
             onClick={() => setInputMode("voice")}
           >
             Voice
@@ -165,20 +165,20 @@ export function ChatPane() {
       </div>
 
       {(lastError || lastSuccess || currentStep !== "idle") ? (
-        <div className="mb-2 shrink-0 rounded border bg-zinc-50 px-2 py-1.5 text-xs dark:bg-zinc-900">
+        <div className="mb-2 shrink-0 rounded border border-border bg-surface px-2 py-1.5 text-xs">
           <div className="flex items-center justify-between gap-2">
             <span className="font-medium">{stepLabel}</span>
             {currentStep !== "idle" ? (
-              <span className="animate-pulse text-zinc-500">In progress</span>
+              <span className="animate-pulse text-muted">In progress</span>
             ) : null}
           </div>
-          {lastSuccess ? <div className="mt-0.5 text-emerald-600">{lastSuccess}</div> : null}
-          {lastError ? <div className="mt-0.5 text-red-500">{lastError}</div> : null}
+          {lastSuccess ? <div className="mt-0.5 text-success">{lastSuccess}</div> : null}
+          {lastError ? <div className="mt-0.5 text-error">{lastError}</div> : null}
           {lastError ? (
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               <button
                 type="button"
-                className="rounded border px-2 py-0.5 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                className="rounded border border-border px-2 py-0.5 hover:bg-surface-hover"
                 onClick={() => void retryLastAction()}
               >
                 Retry
@@ -186,7 +186,7 @@ export function ChatPane() {
               {previousCodeSnapshot ? (
                 <button
                   type="button"
-                  className="rounded border px-2 py-0.5 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  className="rounded border border-border px-2 py-0.5 hover:bg-surface-hover"
                   onClick={restorePreviousCodeSnapshot}
                 >
                   Restore
@@ -194,7 +194,7 @@ export function ChatPane() {
               ) : null}
               <button
                 type="button"
-                className="rounded border px-2 py-0.5 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                className="rounded border border-border px-2 py-0.5 hover:bg-surface-hover"
                 onClick={() => setInputMode("text")}
               >
                 Switch to text
@@ -204,9 +204,9 @@ export function ChatPane() {
         </div>
       ) : null}
 
-      <div className="min-h-0 flex-1 space-y-2 overflow-auto rounded bg-zinc-50 p-2 text-sm dark:bg-zinc-900">
+      <div className="min-h-0 flex-1 space-y-2 overflow-auto rounded bg-surface p-2 text-sm">
         {chatMessages.length === 0 ? (
-          <div className="space-y-2 text-zinc-500">
+          <div className="space-y-2 text-muted">
             <p>No messages yet. Try one of these starter commands:</p>
             <div className="flex flex-wrap gap-2">
               {starterCommands.map((command) => (
@@ -214,7 +214,7 @@ export function ChatPane() {
                   key={command}
                   type="button"
                   onClick={() => setText(command)}
-                  className="rounded border px-2 py-1 text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  className="rounded border border-border px-2 py-1 text-xs hover:bg-surface-hover"
                 >
                   {command}
                 </button>
@@ -245,7 +245,7 @@ export function ChatPane() {
             }}
             onError={(message) => setError(message)}
           />
-          <label className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-300">
+          <label className="flex items-center gap-1.5 text-xs text-muted">
             <input
               type="checkbox"
               checked={autoSendTranscript}
@@ -254,7 +254,7 @@ export function ChatPane() {
             Auto-send after transcription
           </label>
           {transcriptDraft ? (
-            <div className="rounded border border-emerald-600/40 bg-emerald-50 p-1.5 text-xs text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200">
+            <div className="rounded border border-success bg-surface p-1.5 text-xs text-success">
               Transcript ready — press Send to apply.
             </div>
           ) : null}
@@ -273,15 +273,15 @@ export function ChatPane() {
               block: "center",
             });
           }}
-          className="min-h-[4.5rem] w-full resize-none rounded border bg-zinc-50 p-2 text-sm dark:bg-zinc-900"
+          className="min-h-[4.5rem] w-full resize-none rounded border border-border bg-surface p-2 text-sm"
           rows={3}
         />
         <div className="flex items-center justify-between gap-2">
-          <span className="text-[10px] text-zinc-500">{requestCostHint}</span>
+          <span className="text-[10px] text-muted">{requestCostHint}</span>
           <button
             type="submit"
             disabled={currentStep !== "idle"}
-            className="rounded border px-3 py-1 text-sm hover:bg-zinc-100 disabled:opacity-50 dark:hover:bg-zinc-800"
+            className="rounded border border-border px-3 py-1 text-sm bg-primary text-white hover:bg-primary-hover disabled:opacity-50"
           >
             Send
           </button>

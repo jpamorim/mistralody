@@ -12,13 +12,13 @@ export default function Home() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold">{env.NEXT_PUBLIC_APP_NAME}</h1>
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-muted">
               Live-code music with Strudel, chat/voice controls, and AI editing.
             </p>
           </div>
           <Link
             href="/settings"
-            className="rounded-md border px-3 py-1 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="rounded-md border border-border px-3 py-1 text-sm hover:bg-surface-hover"
           >
             Settings
           </Link>

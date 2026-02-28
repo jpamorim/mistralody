@@ -124,7 +124,7 @@ export function VoiceInput({ onTranscript, onError }: VoiceInputProps) {
       {!recording ? (
         <button
           type="button"
-          className="rounded-md border px-3 py-1 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          className="rounded-md border border-border px-3 py-1 text-sm hover:bg-surface-hover"
           onClick={startRecording}
         >
           Hold to speak
@@ -132,27 +132,27 @@ export function VoiceInput({ onTranscript, onError }: VoiceInputProps) {
       ) : (
         <button
           type="button"
-          className="rounded-md border border-red-500 px-3 py-1 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950"
+          className="rounded-md border border-error px-3 py-1 text-sm text-error hover:bg-error-hover"
           onClick={stopRecording}
         >
           Stop ({countdown}s)
         </button>
       )}
       {recording ? (
-        <span className="animate-pulse text-xs font-medium text-red-500">
+        <span className="animate-pulse text-xs font-medium text-error">
           Recording...
         </span>
       ) : null}
       {recording && countdown <= 10 ? (
-        <span className="text-xs text-amber-600">10s warning: wrapping soon</span>
+        <span className="text-xs text-warning">10s warning: wrapping soon</span>
       ) : null}
-      <span className="text-xs text-zinc-500">{getRecordingLimitMessage()}</span>
+      <span className="text-xs text-muted">{getRecordingLimitMessage()}</span>
       {!isSupported ? (
-        <span className="text-xs text-red-500">
+        <span className="text-xs text-error">
           Browser does not support MediaRecorder.
         </span>
       ) : (
-        <span className="text-xs text-zinc-500">
+        <span className="text-xs text-muted">
           Press record, speak, then stop to transcribe.
         </span>
       )}

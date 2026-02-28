@@ -19,11 +19,11 @@ export function FirstRunGuide() {
   if (dismissed) return null;
 
   return (
-    <section className="mx-auto mb-4 max-w-6xl rounded-lg border bg-zinc-50 p-4 dark:bg-zinc-900">
+    <section className="mx-auto mb-4 max-w-6xl rounded-lg border border-border bg-surface p-4">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-sm font-semibold">Quick start</h2>
-          <ol className="mt-2 list-inside list-decimal space-y-1 text-xs text-zinc-600 dark:text-zinc-300">
+          <ol className="mt-2 list-inside list-decimal space-y-1 text-xs text-muted">
             <li>Write or edit Strudel code in the left pane.</li>
             <li>Use text or voice commands in the right pane.</li>
             <li>Open suggestions to discover useful command patterns.</li>
@@ -33,7 +33,7 @@ export function FirstRunGuide() {
             {starterCommands.map((command) => (
               <span
                 key={command}
-                className="rounded border bg-background px-2 py-1 text-[11px]"
+                className="rounded border border-border bg-background px-2 py-1 text-[11px]"
               >
                 {command}
               </span>
@@ -42,7 +42,7 @@ export function FirstRunGuide() {
         </div>
         <button
           type="button"
-          className="rounded border px-2 py-1 text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          className="rounded border border-border px-2 py-1 text-xs hover:bg-surface-hover"
           onClick={() => {
             localStorage.setItem(STORAGE_KEY, "true");
             setDismissed(true);

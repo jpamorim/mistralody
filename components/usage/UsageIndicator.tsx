@@ -10,9 +10,9 @@ import {
 } from "@/lib/usage/usageTracker";
 
 function statusColor(percent: number): string {
-  if (percent >= 100) return "bg-red-500";
-  if (percent >= 80) return "bg-yellow-500";
-  return "bg-emerald-500";
+  if (percent >= 100) return "bg-error";
+  if (percent >= 80) return "bg-warning";
+  return "bg-success";
 }
 
 function ServiceRow({
@@ -40,14 +40,14 @@ function ServiceRow({
           {stats.used}/{stats.limit} ({percent}%)
         </span>
       </div>
-      <div className="h-2 rounded bg-zinc-200 dark:bg-zinc-700">
+      <div className="h-2 rounded bg-border">
         <div
           className={`h-2 rounded ${statusColor(percent)}`}
           style={{ width: `${percent}%` }}
         />
       </div>
-      <div className="text-[10px] text-zinc-500">Resets: {resetAt}</div>
-      {warning ? <div className="text-[10px] text-amber-600">{warning}</div> : null}
+      <div className="text-[10px] text-muted">Resets: {resetAt}</div>
+      {warning ? <div className="text-[10px] text-warning">{warning}</div> : null}
     </div>
   );
 }
@@ -68,7 +68,7 @@ export function UsageIndicator() {
   }, [stats]);
 
   return (
-    <div className="w-full shrink-0 rounded-lg border bg-background p-2">
+    <div className="w-full shrink-0 rounded-lg border border-border bg-background p-2">
       <button
         type="button"
         className="flex w-full items-center justify-between text-sm"
@@ -82,7 +82,7 @@ export function UsageIndicator() {
           <ServiceRow service="mistral" stats={stats.mistral} />
           <ServiceRow service="voxtral" stats={stats.voxtral} />
           <ServiceRow service="elevenlabs" stats={stats.elevenlabs} />
-          <div className="rounded border border-dashed p-2 text-[10px] text-zinc-500">
+          <div className="rounded border border-dashed border-border p-2 text-[10px] text-muted">
             Usage is tracked from successful API calls (transcription, edits, lyrics,
             singing).
           </div>
