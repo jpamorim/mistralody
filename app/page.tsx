@@ -1,13 +1,14 @@
 import { SplitWorkspace } from "@/components/workspace/SplitWorkspace";
 import { getClientEnv } from "@/lib/env";
 import Link from "next/link";
+import { FirstRunGuide } from "@/components/onboarding/FirstRunGuide";
 
 export default function Home() {
   const env = getClientEnv();
 
   return (
-    <main className="min-h-screen p-6">
-      <header className="mx-auto mb-6 max-w-6xl">
+    <main className="flex min-h-screen flex-col p-4 md:p-6">
+      <header className="mx-auto mb-4 max-w-6xl md:mb-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold">{env.NEXT_PUBLIC_APP_NAME}</h1>
@@ -23,7 +24,8 @@ export default function Home() {
           </Link>
         </div>
       </header>
-      <div className="mx-auto max-w-6xl">
+      <FirstRunGuide />
+      <div className="mx-auto flex min-h-0 min-w-0 flex-1 flex-col max-w-6xl">
         <SplitWorkspace />
       </div>
     </main>

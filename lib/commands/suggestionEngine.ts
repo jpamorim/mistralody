@@ -61,6 +61,10 @@ type SuggestionContext = {
   code: string;
 };
 
+export function getSuggestionById(id: string): Suggestion | undefined {
+  return seedSuggestions.find((item) => item.id === id);
+}
+
 export function getContextualSuggestions(context: SuggestionContext): Suggestion[] {
   const hasReverb = /\.room\(/.test(context.code);
   const hasVoice = /voice|vocal|sing/.test(context.code.toLowerCase());
@@ -70,5 +74,21 @@ export function getContextualSuggestions(context: SuggestionContext): Suggestion
     if (suggestion.id === "voice-sample" && hasVoice) return false;
     return true;
   });
+}
+
+export function getSuggestionReason(suggestion: Suggestion, code: string): string {
+  if (suggestion.category === "voice") {
+    return "Useful when you want generated vocals for the current groove.";
+  }
+  if (suggestion.category === "fx" && !/\.room\(/.test(code)) {
+    return "No reverb detected in the current pattern.";
+  }
+  if (suggestion.category === "tempo") {
+    return "Quick way to reshape energy without rewriting notes.";
+  }
+  if (suggestion.category === "arrangement") {
+    return "Helps build variation and layering.";
+  }
+  return "Suggested based on current pattern context.";
 }
 

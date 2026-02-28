@@ -18,6 +18,9 @@ export function VoiceInput({ onTranscript, onError }: VoiceInputProps) {
   const { setCurrentStep } = useWorkspaceStore();
   const [recording, setRecording] = useState(false);
   const [countdown, setCountdown] = useState(MAX_RECORDING_SECONDS);
+  const [isSupported] = useState(
+    typeof window !== "undefined" && typeof window.MediaRecorder !== "undefined",
+  );
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const timerRef = useRef<number | null>(null);
@@ -43,9 +46,16 @@ export function VoiceInput({ onTranscript, onError }: VoiceInputProps) {
   };
 
   const startRecording = async () => {
+    if (!isSupported) {
+      onError("Voice recording is not supported in this browser.");
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm")
+        ? "audio/webm"
+        : "audio/mp4";
+      const recorder = new MediaRecorder(stream, { mimeType });
       recorderRef.current = recorder;
       chunksRef.current = [];
 
@@ -110,7 +120,7 @@ export function VoiceInput({ onTranscript, onError }: VoiceInputProps) {
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       {!recording ? (
         <button
           type="button"
@@ -128,7 +138,24 @@ export function VoiceInput({ onTranscript, onError }: VoiceInputProps) {
           Stop ({countdown}s)
         </button>
       )}
+      {recording ? (
+        <span className="animate-pulse text-xs font-medium text-red-500">
+          Recording...
+        </span>
+      ) : null}
+      {recording && countdown <= 10 ? (
+        <span className="text-xs text-amber-600">10s warning: wrapping soon</span>
+      ) : null}
       <span className="text-xs text-zinc-500">{getRecordingLimitMessage()}</span>
+      {!isSupported ? (
+        <span className="text-xs text-red-500">
+          Browser does not support MediaRecorder.
+        </span>
+      ) : (
+        <span className="text-xs text-zinc-500">
+          Press record, speak, then stop to transcribe.
+        </span>
+      )}
     </div>
   );
 }

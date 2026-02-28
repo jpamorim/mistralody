@@ -7,13 +7,15 @@ import {
   useDefaultLayout,
 } from "react-resizable-panels";
 import { Drawer } from "vaul";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getPaneLayoutStorage } from "@/lib/layout/paneStorage";
 import { List } from "lucide-react";
 import { UsageIndicator } from "@/components/usage/UsageIndicator";
 import { StrudelEditorPane } from "@/components/strudel/StrudelEditorPane";
 import { ChatPane } from "@/components/chat/ChatPane";
 import { SuggestionsPane } from "@/components/suggestions/SuggestionsPane";
+import { useWorkspaceStore } from "@/lib/state/workspaceStore";
+import { getContextualSuggestions } from "@/lib/commands/suggestionEngine";
 
 const MAIN_GROUP_ID = "workspace-main";
 const TOP_GROUP_ID = "workspace-top";
@@ -41,11 +43,11 @@ function DesktopLayout() {
     <Group
       id={MAIN_GROUP_ID}
       orientation="vertical"
-      className="h-[calc(100vh-12rem)] min-h-[400px]"
-      defaultLayout={mainLayout.defaultLayout ?? { top: 60, suggestions: 40 }}
+      className="min-h-0 flex-1"
+      defaultLayout={mainLayout.defaultLayout ?? { top: 75, suggestions: 25 }}
       onLayoutChanged={mainLayout.onLayoutChanged}
     >
-      <Panel id="top" defaultSize={60} minSize={30}>
+      <Panel id="top" defaultSize={75} minSize={50}>
         <Group
           id={TOP_GROUP_ID}
           orientation="horizontal"
@@ -53,11 +55,11 @@ function DesktopLayout() {
           defaultLayout={topLayout.defaultLayout ?? { editor: 50, chat: 50 }}
           onLayoutChanged={topLayout.onLayoutChanged}
         >
-          <Panel id="editor" defaultSize={50} minSize={25}>
+          <Panel id="editor" defaultSize={50} minSize={30}>
             <StrudelEditorPane />
           </Panel>
           <Separator id="top-sep" className="w-1 shrink-0 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-700 dark:hover:bg-zinc-600" />
-          <Panel id="chat" defaultSize={50} minSize={25}>
+          <Panel id="chat" defaultSize={50} minSize={35}>
             <ChatPane />
           </Panel>
         </Group>
@@ -71,17 +73,33 @@ function DesktopLayout() {
 }
 
 function MobileSuggestionsDrawer() {
+  const { code } = useWorkspaceStore();
   const [open, setOpen] = useState(false);
+  const lastFocusedRef = useRef<HTMLElement | null>(null);
+  const scrollYRef = useRef(0);
+  const suggestionCount = getContextualSuggestions({ code }).length;
+
+  useEffect(() => {
+    if (open) {
+      lastFocusedRef.current = document.activeElement as HTMLElement | null;
+      scrollYRef.current = window.scrollY;
+    } else {
+      if (lastFocusedRef.current) lastFocusedRef.current.focus();
+      window.scrollTo({ top: scrollYRef.current });
+    }
+  }, [open]);
 
   return (
     <Drawer.Root open={open} onOpenChange={setOpen} direction="bottom">
       <Drawer.Trigger asChild>
         <button
           type="button"
-          className="fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-zinc-900 text-white shadow-lg transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          className="fixed bottom-6 right-6 flex min-h-14 min-w-14 items-center justify-center gap-2 rounded-full bg-zinc-900 px-4 text-white shadow-lg transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
           aria-label="Open suggestions"
         >
           <List className="h-6 w-6" />
+          <span className="text-xs font-medium">Tips</span>
+          <span className="rounded-full bg-white/20 px-2 text-xs">{suggestionCount}</span>
         </button>
       </Drawer.Trigger>
       <Drawer.Portal>
@@ -113,9 +131,9 @@ function StackedLayout() {
 
 export function SplitWorkspace() {
   return (
-    <section className="space-y-4">
+    <section className="flex min-w-0 flex-1 flex-col gap-3">
       <UsageIndicator />
-      <div className="hidden lg:block">
+      <div className="hidden min-h-[420px] flex-1 lg:flex lg:flex-col">
         <DesktopLayout />
       </div>
       <StackedLayout />

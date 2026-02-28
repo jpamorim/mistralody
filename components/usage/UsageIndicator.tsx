@@ -23,6 +23,15 @@ function ServiceRow({
   stats: UsageStats;
 }) {
   const percent = usagePercent(stats);
+  const resetAt = new Date(stats.resetAt).toLocaleString();
+  const warning =
+    percent >= 100
+      ? "Limit reached. New requests may be blocked."
+      : percent >= 95
+        ? "Critical: almost at limit."
+        : percent >= 80
+          ? "Warning: approaching limit."
+          : null;
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-xs">
@@ -37,6 +46,8 @@ function ServiceRow({
           style={{ width: `${percent}%` }}
         />
       </div>
+      <div className="text-[10px] text-zinc-500">Resets: {resetAt}</div>
+      {warning ? <div className="text-[10px] text-amber-600">{warning}</div> : null}
     </div>
   );
 }
@@ -57,7 +68,7 @@ export function UsageIndicator() {
   }, [stats]);
 
   return (
-    <div className="w-full rounded-lg border bg-background p-3">
+    <div className="w-full shrink-0 rounded-lg border bg-background p-2">
       <button
         type="button"
         className="flex w-full items-center justify-between text-sm"
@@ -71,6 +82,10 @@ export function UsageIndicator() {
           <ServiceRow service="mistral" stats={stats.mistral} />
           <ServiceRow service="voxtral" stats={stats.voxtral} />
           <ServiceRow service="elevenlabs" stats={stats.elevenlabs} />
+          <div className="rounded border border-dashed p-2 text-[10px] text-zinc-500">
+            Usage is tracked from successful API calls (transcription, edits, lyrics,
+            singing).
+          </div>
         </div>
       ) : null}
     </div>
