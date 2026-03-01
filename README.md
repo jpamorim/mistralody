@@ -2,6 +2,8 @@
 
 **Live-code music by talking to it.** Describe what you want, speak it, or click—Mistralody turns your words into Strudel patterns and ElevenLabs singing, instantly.
 
+*Built for the [Mistral AI Worldwide Hackathon 2026](https://worldwide-hackathon.mistral.ai/).*
+
 ![Mistralody screenshot](docs/screenshot.png)
 
 ## Why Mistralody?
