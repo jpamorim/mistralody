@@ -2,44 +2,65 @@
 
 ## Overview
 
-Mistralody is a Next.js App Router application with three primary UI zones:
+Mistralody is a Next.js App Router app that connects natural language (text and voice) to live Strudel music code. The UI is organized into three main zones:
 
-- Left: Strudel code editing + event/vibe visualization
-- Right: Chat and voice commands
-- Bottom: Contextual command suggestions
+| Zone | Purpose |
+|------|---------|
+| **Left** | Strudel editor + event/vibe visualizer |
+| **Right** | Chat pane with text and voice input |
+| **Bottom** | Contextual command suggestions |
 
-Core state is managed client-side with Zustand (`lib/state/workspaceStore.ts`).
+Core state lives in Zustand (`lib/state/workspaceStore.ts`).
 
-## Data Flow
+## Data flow
 
-1. User enters text (or records voice) in `ChatPane`.
-2. Voice requests call `/api/transcribe` (Voxtral via Mistral audio transcription).
-3. Text instruction calls `/api/agent-edit` (Mistral LLM-based routing + edit result).
-4. Updated code is stored in the workspace store.
-5. Visualizer pane renders event/vibe visuals from code/playback state.
-6. Optional vocal flow:
-   - `/api/lyrics` generates lyrics from `LyricTimingContext`
-   - `/api/singing` generates audio from ElevenLabs
-   - `/api/voice-sample` orchestrates both
+1. User enters text or records voice in `ChatPane`.
+2. **Voice** → `/api/transcribe` (Voxtral via Mistral) → transcribed text.
+3. **Text** → `/api/agent-edit` (Mistral) → `intent` + `codePatch` (or `add_voice_sample`).
+4. If `edit_code`: code is updated, playback restarts.
+5. If `add_voice_sample`: `/api/voice-sample` orchestrates lyrics + ElevenLabs singing.
+6. Visualizer pane reacts to playback state.
 
-## Key Modules
+### Vocal flow (add_voice_sample)
 
-- UI composition: `components/workspace/SplitWorkspace.tsx`
-- Strudel code pane: `components/strudel/StrudelEditorPane.tsx`
-- Chat + voice input: `components/chat/ChatPane.tsx`, `components/chat/VoiceInput.tsx`
-- Suggestions: `components/suggestions/SuggestionsPane.tsx`
-- Usage/limits UI: `components/usage/UsageIndicator.tsx`
-- AI clients: `lib/ai/mistralClient.ts`, `lib/ai/elevenLabsClient.ts`
-- Timing extraction: `lib/lyrics/timingContext.ts`
-- Usage tracking: `lib/usage/usageTracker.ts`
+```
+/api/voice-sample
+  ├─ /api/lyrics        (Mistral: lyric generation from timing context)
+  └─ /api/singing       (ElevenLabs: text-to-speech)
+  └─ /api/audio/vocal   (store audio)
+  └─ addVocalSample() + injectVocalLayer()
+```
 
-## Reliability and Error UX
+## Key modules
 
-- Each async operation has step-level status (`transcribe`, `agent-edit`, `lyrics`, `singing`).
-- Chat UI displays loading hints and error messages.
-- API endpoints return clear error payloads for retries/fallbacks.
+| Module | Path | Role |
+|--------|------|------|
+| Split workspace | `components/workspace/SplitWorkspace.tsx` | Layout and panel composition |
+| Strudel editor | `components/strudel/StrudelEditorPane.tsx` | Code editor + playback controls |
+| Chat + voice | `components/chat/ChatPane.tsx`, `VoiceInput.tsx` | Input, agent flow, voice sample flow |
+| Suggestions | `components/suggestions/SuggestionsPane.tsx` | One-click command chips |
+| Usage indicator | `components/usage/UsageIndicator.tsx` | API usage and limits |
+| AI clients | `lib/ai/mistralClient.ts`, `lib/ai/elevenLabsClient.ts` | Mistral, ElevenLabs |
+| Timing context | `lib/lyrics/timingContext.ts` | BPM, bars, target syllables for lyrics |
+| Vocal cache | `lib/audio/vocalCache.ts` | In-memory vocal sample registry |
+| Inject vocal | `lib/strudel/injectVocal.ts` | Adds `s("vocal")` layer to patterns |
+
+## Agent intent routing
+
+The agent returns `intent`:
+
+- `edit_code` → Apply `codePatch` to the pattern, restart playback.
+- `add_voice_sample` → Run the ElevenLabs vocal flow (lyrics → singing → inject layer).
+
+No hard-coded keyword detection; routing is driven by the agent.
+
+## Error and UX behavior
+
+- Async steps have status: `transcribe`, `agent-edit`, `lyrics`, `singing`.
+- Chat shows loading hints and error messages.
+- On playback failure, previous code is restored and playback resumes.
+- API endpoints return structured error payloads for retries and fallbacks.
 
 ## Licensing
 
-Strudel packages are AGPL-3.0 licensed. If this app is distributed with Strudel functionality enabled, ensure AGPL obligations are satisfied (source availability and attribution).
-
+Strudel packages are AGPL-3.0. Ensure AGPL obligations are met when distributing this app with Strudel enabled.

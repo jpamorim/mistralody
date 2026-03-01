@@ -2,49 +2,68 @@
 
 ## Prerequisites
 
-- Node.js 20+
-- npm 10+
+- **Node.js 20+** (18+ may work)
+- **npm 10+**
 - API keys:
-  - Mistral (`MISTRAL_API_KEY`)
-  - ElevenLabs (`ELEVENLABS_API_KEY`)
+  - [Mistral](https://console.mistral.ai/) – for agent edits and Voxtral transcription
+  - [ElevenLabs](https://elevenlabs.io/) – for singing synthesis
 
-## Environment Variables
+## Environment variables
 
-Create/update `.env`:
+Create `.env` (or copy from `.env.example`):
 
 ```bash
 MISTRAL_API_KEY=...
 ELEVENLABS_API_KEY=...
+ELEVENLABS_VOICE_ID=             # optional; overrides default singing voice (Rachel)
 NEXT_PUBLIC_APP_NAME=Mistralody
 ```
 
-## Install and Run
+Keys and voice ID can also be configured in **Settings** (`/settings`); those values override env for the current session.
+
+## Install and run
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`.
+Open [http://localhost:3000](http://localhost:3000).
 
-## Settings and Limits
+## Settings
 
-- Open `/settings` to configure API keys and usage limits.
-- API keys entered there are stored server-side in this prototype runtime store.
-- Usage limits are persisted in the browser and reflected in `UsageIndicator`.
+At `/settings` you can:
 
-## Validation Checklist
+- Configure Mistral and ElevenLabs API keys (stored server-side for the session)
+- Set ElevenLabs voice ID (optional)
+- Adjust per-service usage limits (stored in browser)
 
-1. `npm run lint` passes
-2. `npm run build` passes
-3. Text command updates code through `/api/agent-edit`
-4. Voice recording transcribes through `/api/transcribe`
-5. Lyrics generation works through `/api/lyrics`
-6. Singing generation works through `/api/singing`
-7. Orchestration works through `/api/voice-sample`
+## Validation checklist
 
-## Notes
+- [ ] `npm run lint` passes
+- [ ] `npm run build` passes
+- [ ] Text command updates code via `/api/agent-edit`
+- [ ] Voice recording transcribes via `/api/transcribe`
+- [ ] Lyrics generation via `/api/lyrics`
+- [ ] Singing synthesis via `/api/singing`
+- [ ] Voice sample flow via `/api/voice-sample`
 
-- Audio uploads are constrained to 10 MB and target short command clips.
-- This implementation uses a safe, iterative fallback strategy for async failures (retryable API responses + preserved UI state).
+## Troubleshooting
 
+### ElevenLabs “unusual activity” error
+
+ElevenLabs may block requests from datacenter IPs, VPNs, or proxies. Try:
+
+- Run locally without VPN
+- Use a different network (e.g. home Wi‑Fi vs corporate)
+- Contact ElevenLabs support if you have a paid plan and still see this
+
+### Invalid model response shape
+
+The agent sometimes returns non-standard JSON. The app normalizes common variations (e.g. `code` vs `codePatch`, markdown wrapping). If issues persist, the error message includes validation details to help debug.
+
+### Voice transcription fails
+
+- Ensure recordings are at least 2 seconds
+- Check that the blob size is large enough (min 4 KB)
+- Verify Voxtral usage limits in settings
