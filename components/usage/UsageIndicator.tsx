@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
+  getDefaultLimits,
+  initUsage,
   loadUsage,
   loadUsageLimits,
   type UsageService,
@@ -54,9 +56,10 @@ function ServiceRow({
 
 export function UsageIndicator() {
   const [expanded, setExpanded] = useState(false);
-  const [stats, setStats] = useState(() => loadUsage(loadUsageLimits()));
+  const [stats, setStats] = useState(() => initUsage(getDefaultLimits()));
 
   useEffect(() => {
+    setStats(loadUsage(loadUsageLimits()));
     const onFocus = () => setStats(loadUsage(loadUsageLimits()));
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);

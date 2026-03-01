@@ -15,6 +15,7 @@ export async function POST(request: Request) {
     apiKey?: string;
     mistralApiKey?: string;
     elevenlabsApiKey?: string;
+    elevenlabsVoiceId?: string;
     usageLimits?: Record<string, { limit: number; period: "daily" | "monthly" }>;
   };
   if (payload.action === "test") {
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
   const next = updateSettings({
     mistralApiKey: payload.mistralApiKey || undefined,
     elevenlabsApiKey: payload.elevenlabsApiKey || undefined,
+    elevenlabsVoiceId: payload.elevenlabsVoiceId || undefined,
     usageLimits: payload.usageLimits as
       | ReturnType<typeof getSettings>["usageLimits"]
       | undefined,

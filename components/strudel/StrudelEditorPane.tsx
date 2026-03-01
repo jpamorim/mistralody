@@ -1,13 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { RotateCcw, Download } from "lucide-react";
 import { useWorkspaceStore } from "@/lib/state/workspaceStore";
 import { StrudelVisualizerPane } from "@/components/visualizers/StrudelVisualizerPane";
 import { playStrudelCode, stopStrudelPlayback } from "@/lib/strudel/playback";
 
 export function StrudelEditorPane() {
-  const { code, setCode, setIsPlaying, isPlaying, currentStep, lastAgentUpdate } =
-    useWorkspaceStore();
+  const {
+    code,
+    setCode,
+    setIsPlaying,
+    isPlaying,
+    currentStep,
+    lastAgentUpdate,
+    resetCode,
+  } = useWorkspaceStore();
   const [playError, setPlayError] = useState<string | null>(null);
   const disablePlayback = currentStep === "agent-edit" || currentStep === "singing";
 
@@ -33,11 +41,28 @@ export function StrudelEditorPane() {
     setPlayError(null);
   }, [setIsPlaying]);
 
+  const handleReset = useCallback(() => {
+    stopStrudelPlayback();
+    setIsPlaying(false);
+    setPlayError(null);
+    resetCode();
+  }, [setIsPlaying, resetCode]);
+
+  const handleDownload = useCallback(() => {
+    const blob = new Blob([code], { type: "text/javascript" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `mistralody-${Date.now()}.js`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [code]);
+
   return (
     <div className="flex h-full flex-col gap-3 overflow-hidden rounded-lg border border-border bg-background p-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Strudel Editor</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             className={`rounded-md border border-border px-3 py-1 text-sm disabled:opacity-50 ${isPlaying ? "bg-primary text-white hover:bg-primary-hover" : "hover:bg-surface-hover"}`}
@@ -53,6 +78,23 @@ export function StrudelEditorPane() {
             disabled={disablePlayback}
           >
             Stop
+          </button>
+          <button
+            type="button"
+            className="rounded-md border border-border px-3 py-1 text-sm hover:bg-surface-hover disabled:opacity-50"
+            onClick={handleReset}
+            disabled={disablePlayback}
+            title="Reset to default pattern"
+          >
+            <RotateCcw className="inline h-3.5 w-3.5" /> Reset
+          </button>
+          <button
+            type="button"
+            className="rounded-md border border-border px-3 py-1 text-sm hover:bg-surface-hover disabled:opacity-50"
+            onClick={handleDownload}
+            title="Download code as .js file"
+          >
+            <Download className="inline h-3.5 w-3.5" /> Download
           </button>
         </div>
       </div>

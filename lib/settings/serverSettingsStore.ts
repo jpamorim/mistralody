@@ -3,6 +3,7 @@ import type { UsageLimit, UsageService } from "@/lib/usage/usageTracker";
 export type AppSettings = {
   mistralApiKey?: string;
   elevenlabsApiKey?: string;
+  elevenlabsVoiceId?: string;
   usageLimits: Record<UsageService, UsageLimit>;
 };
 

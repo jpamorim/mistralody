@@ -3,6 +3,7 @@
 let initPromise: Promise<{
   evaluate: (code: string, autoplay?: boolean) => Promise<unknown>;
   hush: () => void;
+  samples: (samples: Record<string, string>, baseUrl: string) => Promise<unknown>;
 }> | null = null;
 
 async function getStrudel() {
@@ -16,7 +17,7 @@ async function getStrudel() {
           await samples("github:tidalcycles/dirt-samples");
         },
       });
-      return { evaluate, hush };
+      return { evaluate, hush, samples };
     })();
   }
   return initPromise;
@@ -25,6 +26,14 @@ async function getStrudel() {
 export async function playStrudelCode(code: string): Promise<void> {
   const { evaluate } = await getStrudel();
   await evaluate(code, true);
+}
+
+export async function addVocalSample(
+  sampleId: string,
+  baseUrl: string,
+): Promise<void> {
+  const { samples } = await getStrudel();
+  await samples({ vocal: sampleId }, baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`);
 }
 
 export function stopStrudelPlayback(): void {

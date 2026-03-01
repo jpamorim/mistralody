@@ -3,11 +3,19 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { VoiceInput } from "@/components/chat/VoiceInput";
 import { useWorkspaceStore } from "@/lib/state/workspaceStore";
+import {
+  addVocalSample,
+  playStrudelCode,
+  stopStrudelPlayback,
+} from "@/lib/strudel/playback";
+import { injectVocalLayer } from "@/lib/strudel/injectVocal";
 import { incrementUsage, loadUsage } from "@/lib/usage/usageTracker";
 
 type AgentResponse = {
   message?: string;
   code?: string;
+  intent?: string;
+  params?: { lyricPrompt?: string };
   error?: string;
 };
 
@@ -35,6 +43,8 @@ export function ChatPane() {
     autoSendTranscript,
     setAutoSendTranscript,
     setLastAgentUpdate,
+    isPlaying,
+    setIsPlaying,
   } = useWorkspaceStore();
   const [text, setText] = useState("");
   const [transcriptDraft, setTranscriptDraft] = useState<string | null>(null);
@@ -56,13 +66,8 @@ export function ChatPane() {
     return "Synthesizing singing voice";
   }, [currentStep]);
 
-  const requestCostHint = useMemo(() => {
-    const lower = text.toLowerCase();
-    if (lower.includes("voice sample") || lower.includes("vocal")) {
-      return "This request may use ~2 Mistral calls + 1 ElevenLabs synthesis.";
-    }
-    return "This request uses ~1 Mistral call.";
-  }, [text]);
+  const requestCostHint =
+    "Uses Mistral. Voice requests also use ElevenLabs.";
 
   useEffect(() => {
     if (suggestions.length > 0) {
@@ -70,6 +75,72 @@ export function ChatPane() {
       setSuggestions([]);
     }
   }, [setSuggestions, suggestions]);
+
+  const submitVoiceSample = async (instruction: string) => {
+    setCurrentStep("lyrics");
+    try {
+      const voiceRes = await fetch("/api/voice-sample", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          prompt: instruction || "Create a short vocal line that fits this groove.",
+        }),
+      });
+      if (!voiceRes.ok) {
+        const err = (await voiceRes.json()) as { error?: string };
+        throw new Error(err.error ?? "Voice sample generation failed.");
+      }
+      const voiceData = (await voiceRes.json()) as {
+        audioBase64: string;
+        mimeType: string;
+        lyric: string;
+      };
+
+      const storeRes = await fetch("/api/audio/vocal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          audioBase64: voiceData.audioBase64,
+          mimeType: voiceData.mimeType,
+        }),
+      });
+      if (!storeRes.ok) {
+        throw new Error("Could not store vocal audio.");
+      }
+      const { id, baseUrl } = (await storeRes.json()) as {
+        id: string;
+        baseUrl: string;
+      };
+
+      await addVocalSample(id, baseUrl);
+      const newCode = injectVocalLayer(code);
+      setCode(newCode);
+      if (isPlaying) {
+        stopStrudelPlayback();
+        await playStrudelCode(newCode);
+      } else {
+        setIsPlaying(true);
+        await playStrudelCode(newCode);
+      }
+      addMessage({
+        role: "assistant",
+        content: `Added ElevenLabs singing voice. Lyric: "${voiceData.lyric}"`,
+      });
+      setLastAgentUpdate("Added singing voice");
+      setSuccess("Voice sample added and playing.");
+      const usage = loadUsage();
+      incrementUsage(usage, "mistral", 1);
+      incrementUsage(usage, "elevenlabs", 1);
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Voice sample failed.";
+      setError(msg);
+      addMessage({ role: "system", content: msg });
+    } finally {
+      setCurrentStep("idle");
+    }
+  };
 
   const submitInstruction = async (instruction: string) => {
     const normalized = instruction.trim();
@@ -79,10 +150,10 @@ export function ChatPane() {
     addMessage({ role: "user", content: normalized });
     setLastInstruction(normalized);
     setPreviousCodeSnapshot(code);
-    setCurrentStep("agent-edit");
     setError(null);
     setSuccess(null);
 
+    setCurrentStep("agent-edit");
     try {
       const response = await fetch("/api/agent-edit", {
         method: "POST",
@@ -95,13 +166,51 @@ export function ChatPane() {
         throw new Error(data.error ?? "Agent could not process the command.");
       }
 
-      if (data.code) setCode(data.code);
+      if (data.intent === "add_voice_sample") {
+        const lyricPrompt =
+          (data.params?.lyricPrompt ?? "").trim() || normalized;
+        setCurrentStep("lyrics");
+        await submitVoiceSample(lyricPrompt);
+        return;
+      }
+
+      let playbackOk = true;
+      if (data.code) {
+        setCode(data.code);
+        try {
+          if (isPlaying) {
+            stopStrudelPlayback();
+            await playStrudelCode(data.code);
+          } else {
+            setIsPlaying(true);
+            await playStrudelCode(data.code);
+          }
+        } catch {
+          playbackOk = false;
+          setIsPlaying(false);
+          restorePreviousCodeSnapshot();
+          setError("Code failed to play. Restored previous version.");
+          if (previousCodeSnapshot) {
+            try {
+              stopStrudelPlayback();
+              await playStrudelCode(previousCodeSnapshot);
+              setIsPlaying(true);
+            } catch {
+              // ignore
+            }
+          }
+        }
+      }
       addMessage({
         role: "assistant",
-        content: data.message ?? "Updated the pattern.",
+        content: playbackOk
+          ? (data.message ?? "Updated the pattern.")
+          : "The edit could not be played (invalid or unsupported code). Restored your previous pattern.",
       });
-      setLastAgentUpdate(data.message ?? "Applied requested change");
-      setSuccess("Code updated successfully.");
+      setLastAgentUpdate(
+        playbackOk ? (data.message ?? "Applied requested change") : "Restored previous pattern",
+      );
+      setSuccess(playbackOk ? "Code updated successfully." : null);
 
       const usage = loadUsage();
       incrementUsage(usage, "mistral", 1);
@@ -129,6 +238,7 @@ export function ChatPane() {
     "increase tempo by 10%",
     "add light reverb",
     "transpose melody up 2 semitones",
+    "add a voice sample that fits this groove",
   ];
 
   const retryLastAction = async () => {
@@ -242,6 +352,12 @@ export function ChatPane() {
                 setTranscriptDraft(transcript);
                 setSuccess("Transcription received. Review and send when ready.");
               }
+              requestAnimationFrame(() => {
+                textareaRef.current?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+              });
             }}
             onError={(message) => setError(message)}
           />
@@ -254,8 +370,10 @@ export function ChatPane() {
             Auto-send after transcription
           </label>
           {transcriptDraft ? (
-            <div className="rounded border border-success bg-surface p-1.5 text-xs text-success">
-              Transcript ready — press Send to apply.
+            <div className="rounded border border-success bg-surface p-1.5 text-xs">
+              <span className="font-medium text-success">Transcript: </span>
+              <span className="text-foreground">{transcriptDraft}</span>
+              <p className="mt-1 text-muted">Press Send to apply.</p>
             </div>
           ) : null}
         </div>

@@ -46,10 +46,11 @@ export type WorkspaceState = {
   setLastAgentUpdate: (summary: string | null) => void;
   setAutoSendTranscript: (enabled: boolean) => void;
   restorePreviousCodeSnapshot: () => void;
+  resetCode: () => void;
   clearMessages: () => void;
 };
 
-const defaultCode = [
+export const DEFAULT_CODE = [
   "setcps(1)",
   "stack(",
   "  s(\"bd sd hh*2\").gain(0.9),",
@@ -60,7 +61,7 @@ const defaultCode = [
 export const useWorkspaceStore = create<WorkspaceState>()(
   persist(
     (set) => ({
-      code: defaultCode,
+      code: DEFAULT_CODE,
       isPlaying: false,
       cps: 1,
       inputMode: "text",
@@ -111,6 +112,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             ? { code: state.previousCodeSnapshot, previousCodeSnapshot: null }
             : state,
         ),
+      resetCode: () => set({ code: DEFAULT_CODE }),
       clearMessages: () => set({ chatMessages: [] }),
     }),
     {

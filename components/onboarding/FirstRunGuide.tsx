@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "mistralody-onboarding-dismissed";
 
@@ -11,10 +11,11 @@ const starterCommands = [
 ];
 
 export function FirstRunGuide() {
-  const [dismissed, setDismissed] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return localStorage.getItem(STORAGE_KEY) === "true";
-  });
+  const [dismissed, setDismissed] = useState(true);
+
+  useEffect(() => {
+    setDismissed(localStorage.getItem(STORAGE_KEY) === "true");
+  }, []);
 
   if (dismissed) return null;
 

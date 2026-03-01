@@ -1,21 +1,29 @@
 import { NextResponse } from "next/server";
 import { extractTimingContext } from "@/lib/lyrics/timingContext";
+import { getSettings } from "@/lib/settings/serverSettingsStore";
+import { DEFAULT_SINGING_VOICE_ID } from "@/lib/voice/defaultVoice";
 
 type Payload = {
   code: string;
   prompt?: string;
-  voiceId: string;
+  voiceId?: string;
 };
 
 export async function POST(request: Request) {
   try {
     const payload = (await request.json()) as Payload;
-    if (!payload.code || !payload.voiceId) {
+    if (!payload.code) {
       return NextResponse.json(
-        { error: "Both code and voiceId are required." },
+        { error: "Code is required." },
         { status: 400 },
       );
     }
+
+    const voiceId =
+      payload.voiceId ??
+      getSettings().elevenlabsVoiceId ??
+      process.env.ELEVENLABS_VOICE_ID ??
+      DEFAULT_SINGING_VOICE_ID;
 
     const timing = extractTimingContext(payload.code);
     const origin = new URL(request.url).origin;
@@ -42,7 +50,7 @@ export async function POST(request: Request) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         lyric: lyricData.lyrics,
-        voiceId: payload.voiceId,
+        voiceId,
       }),
     });
 

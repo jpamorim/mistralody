@@ -1,7 +1,101 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
+import { ArrowLeft, Pencil } from "lucide-react";
 import type { UsageLimit, UsageService } from "@/lib/usage/usageTracker";
+
+function maskKey(key: string): string {
+  if (!key || key.length <= 3) return "•••";
+  return "•".repeat(key.length - 3) + key.slice(-3);
+}
+
+function ApiKeyInput({
+  value,
+  onChange,
+  hasError,
+  label,
+  testLabel,
+  onTest,
+  testing,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  hasError: boolean;
+  label: string;
+  testLabel: string;
+  onTest: () => void;
+  testing: boolean;
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [localValue, setLocalValue] = useState(value);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  const handleBlur = () => {
+    setIsEditing(false);
+    onChange(localValue);
+  };
+
+  if (isEditing) {
+    return (
+      <div className="space-y-1">
+        <span className="text-sm font-medium">{label}</span>
+        <input
+          type="password"
+          value={localValue}
+          onChange={(e) => setLocalValue(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+          autoFocus
+          className={`mt-1 w-full rounded border p-2 font-mono ${hasError ? "border-error" : "border-border"}`}
+          placeholder="Enter API key"
+        />
+        <div className="mt-1 flex items-center justify-between">
+          <span className="text-xs text-muted">Must be at least 10 chars.</span>
+          <button
+            type="button"
+            onClick={handleBlur}
+            className="rounded border border-border px-2 py-1 text-xs hover:bg-surface-hover"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1">
+      <span className="text-sm font-medium">{label}</span>
+      <div className="mt-1 flex items-center gap-2">
+        <div
+          className={`min-h-[2.25rem] flex-1 rounded border px-3 py-2 font-mono text-sm ${hasError ? "border-error" : "border-border"} bg-surface`}
+        >
+          {value ? maskKey(value) : <span className="text-muted">Not set</span>}
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsEditing(true)}
+          className="rounded border border-border p-2 hover:bg-surface-hover"
+          aria-label="Edit key"
+        >
+          <Pencil className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={onTest}
+          className="rounded border border-border px-2 py-1 text-xs hover:bg-surface-hover"
+          disabled={testing}
+        >
+          {testing ? "Testing..." : "Test key"}
+        </button>
+      </div>
+    </div>
+  );
+}
 import {
   getDefaultLimits,
   saveUsageLimits,
@@ -11,6 +105,7 @@ import {
 type SettingsPayload = {
   mistralApiKey?: string;
   elevenlabsApiKey?: string;
+  elevenlabsVoiceId?: string;
   usageLimits: Record<UsageService, UsageLimit>;
 };
 
@@ -83,6 +178,13 @@ export default function SettingsPage() {
 
   return (
     <main className="mx-auto max-w-3xl p-6">
+      <Link
+        href="/"
+        className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back
+      </Link>
       <h1 className="text-2xl font-semibold">Settings</h1>
       <p className="mt-1 text-sm text-muted">
         Configure API keys and per-service usage limits.
@@ -93,58 +195,57 @@ export default function SettingsPage() {
       </div>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-6">
-        <section className="space-y-3 rounded-lg border border-border p-4">
+        <section className="space-y-4 rounded-lg border border-border p-4">
           <h2 className="font-semibold">API keys</h2>
-          <label className="block text-sm">
-            <span>Mistral API key</span>
+          <ApiKeyInput
+            value={payload.mistralApiKey ?? ""}
+            onChange={(v) =>
+              setPayload((prev) => ({ ...prev, mistralApiKey: v }))
+            }
+            hasError={
+              Boolean(payload.mistralApiKey) &&
+              payload.mistralApiKey!.length < 10
+            }
+            label="Mistral API key"
+            testLabel="Test key"
+            onTest={() => void testKey("mistral")}
+            testing={testingProvider === "mistral-key"}
+          />
+          <ApiKeyInput
+            value={payload.elevenlabsApiKey ?? ""}
+            onChange={(v) =>
+              setPayload((prev) => ({ ...prev, elevenlabsApiKey: v }))
+            }
+            hasError={
+              Boolean(payload.elevenlabsApiKey) &&
+              payload.elevenlabsApiKey!.length < 10
+            }
+            label="ElevenLabs API key"
+            testLabel="Test key"
+            onTest={() => void testKey("elevenlabs")}
+            testing={testingProvider === "elevenlabs-key"}
+          />
+          <div className="space-y-1">
+            <span className="text-sm font-medium">
+              ElevenLabs voice ID (optional)
+            </span>
             <input
-              type="password"
-              value={payload.mistralApiKey ?? ""}
-              onChange={(event) =>
+              type="text"
+              value={payload.elevenlabsVoiceId ?? ""}
+              onChange={(e) =>
                 setPayload((prev) => ({
                   ...prev,
-                  mistralApiKey: event.target.value,
+                  elevenlabsVoiceId: e.target.value || undefined,
                 }))
               }
-              className={`mt-1 w-full rounded border p-2 ${payload.mistralApiKey && payload.mistralApiKey.length < 10 ? "border-error" : "border-border"}`}
+              placeholder="e.g. 21m00Tcm4TlvDq8ikWAM (Rachel)"
+              className="mt-1 w-full rounded border border-border p-2 font-mono text-sm"
             />
-            <div className="mt-1 flex items-center justify-between">
-              <span className="text-xs text-muted">Must be at least 10 chars.</span>
-              <button
-                type="button"
-                onClick={() => void testKey("mistral")}
-                className="rounded border border-border px-2 py-1 text-xs hover:bg-surface-hover"
-                disabled={testingProvider === "mistral-key"}
-              >
-                {testingProvider === "mistral-key" ? "Testing..." : "Test key"}
-              </button>
-            </div>
-          </label>
-          <label className="block text-sm">
-            <span>ElevenLabs API key</span>
-            <input
-              type="password"
-              value={payload.elevenlabsApiKey ?? ""}
-              onChange={(event) =>
-                setPayload((prev) => ({
-                  ...prev,
-                  elevenlabsApiKey: event.target.value,
-                }))
-              }
-              className={`mt-1 w-full rounded border p-2 ${payload.elevenlabsApiKey && payload.elevenlabsApiKey.length < 10 ? "border-error" : "border-border"}`}
-            />
-            <div className="mt-1 flex items-center justify-between">
-              <span className="text-xs text-muted">Must be at least 10 chars.</span>
-              <button
-                type="button"
-                onClick={() => void testKey("elevenlabs")}
-                className="rounded border border-border px-2 py-1 text-xs hover:bg-surface-hover"
-                disabled={testingProvider === "elevenlabs-key"}
-              >
-                {testingProvider === "elevenlabs-key" ? "Testing..." : "Test key"}
-              </button>
-            </div>
-          </label>
+            <p className="mt-1 text-xs text-muted">
+              Override the default singing voice. Leave empty to use the built-in
+              default.
+            </p>
+          </div>
         </section>
 
         <section className="space-y-3 rounded-lg border border-border p-4">

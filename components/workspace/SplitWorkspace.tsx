@@ -24,15 +24,33 @@ function SuggestionsPaneContent() {
   return <SuggestionsPane />;
 }
 
-function DesktopLayout() {
-  const storage = getPaneLayoutStorage();
+function DesktopLayoutPlaceholder() {
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+        <div className="min-h-[200px] flex-1 lg:min-w-0">
+          <StrudelEditorPane />
+        </div>
+        <div className="h-1 w-full shrink-0 bg-border lg:h-full lg:w-1" />
+        <div className="min-h-[200px] flex-1 lg:min-w-0">
+          <ChatPane />
+        </div>
+      </div>
+      <div className="h-1 shrink-0 bg-border" />
+      <div className="min-h-[120px] flex-1">
+        <SuggestionsPaneContent />
+      </div>
+    </div>
+  );
+}
 
+function DesktopLayoutResizable() {
+  const storage = getPaneLayoutStorage();
   const mainLayout = useDefaultLayout({
     id: MAIN_GROUP_ID,
     storage,
     panelIds: ["top", "suggestions"],
   });
-
   const topLayout = useDefaultLayout({
     id: TOP_GROUP_ID,
     storage,
@@ -70,6 +88,20 @@ function DesktopLayout() {
       </Panel>
     </Group>
   );
+}
+
+function DesktopLayout() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <DesktopLayoutPlaceholder />;
+  }
+
+  return <DesktopLayoutResizable />;
 }
 
 function MobileSuggestionsDrawer() {

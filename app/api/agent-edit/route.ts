@@ -23,8 +23,11 @@ export async function POST(request: Request) {
       messages: [
         {
           role: "system",
-          content:
-            "You are a Strudel code editor assistant. Return JSON only with keys: intent, explanation, codePatch. codePatch must be complete valid Strudel code. Respect bounded and safe edits.",
+          content: `You are a Strudel code editor assistant. Return JSON only with keys: intent, explanation, codePatch, params (optional).
+- intent: "edit_code" for normal Strudel edits, "add_voice_sample" when the user wants ElevenLabs singing/vocals (e.g. "add vocal", "sing let it go", "voice sample", "add singing", lyrics requests).
+- When intent is "add_voice_sample": set params.lyricPrompt to the user's lyric idea if they mentioned one (e.g. "let it go" -> "let it go"); otherwise omit params or leave lyricPrompt empty.
+- codePatch: complete valid Strudel code. Only use samples from the preloaded dirt-samples pack (bd, sd, hh, cp, etc.). NEVER invent sample names like s("letitgo"), s("vocal"), s("lyrics")—if the user wants singing, use intent "add_voice_sample" instead.
+- When intent is "add_voice_sample", codePatch is ignored; the app will run the ElevenLabs singing flow.`,
         },
         {
           role: "user",
@@ -51,10 +54,36 @@ export async function POST(request: Request) {
       );
     }
 
-    const parsed = agentIntentSchema.safeParse(JSON.parse(content));
-    if (!parsed.success) {
+    const rawJson = content.replace(/^```(?:json)?\s*|\s*```$/g, "").trim();
+    let parsedJson: unknown;
+    try {
+      parsedJson = JSON.parse(rawJson);
+    } catch {
       return NextResponse.json(
-        { error: "Invalid model response shape." },
+        { error: "Agent returned invalid JSON." },
+        { status: 502 },
+      );
+    }
+
+    const obj =
+      typeof parsedJson === "object" && parsedJson !== null
+        ? (parsedJson as Record<string, unknown>)
+        : {};
+    const normalized = {
+      intent:
+        obj.intent ?? obj.Intent ?? "edit_code",
+      params: obj.params ?? obj.Params,
+      codePatch: obj.codePatch ?? obj.code,
+      explanation: obj.explanation ?? obj.message,
+    };
+
+    const parsed = agentIntentSchema.safeParse(normalized);
+    if (!parsed.success) {
+      const issues = parsed.error.issues
+        .map((i) => `${i.path.join(".")}: ${i.message}`)
+        .join("; ");
+      return NextResponse.json(
+        { error: `Invalid model response shape: ${issues}` },
         { status: 502 },
       );
     }
@@ -63,6 +92,7 @@ export async function POST(request: Request) {
       message: parsed.data.explanation ?? "Applied requested change.",
       code: parsed.data.codePatch ?? payload.code,
       intent: parsed.data.intent,
+      params: parsed.data.params,
     });
   } catch (error) {
     return NextResponse.json(
